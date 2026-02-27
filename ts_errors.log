@@ -1,0 +1,30 @@
+app/api/ai/route.ts(2,36): error TS2307: Cannot find module '@/lib/aiService' or its corresponding type declarations.
+app/api/parse/route.ts(2,35): error TS2307: Cannot find module '@/lib/gitParser' or its corresponding type declarations.
+app/api/parse/route.ts(3,59): error TS2307: Cannot find module '@/lib/hotspotAnalyzer' or its corresponding type declarations.
+app/page.tsx(4,22): error TS2307: Cannot find module '@/components/Timeline' or its corresponding type declarations.
+app/page.tsx(5,21): error TS2307: Cannot find module '@/components/Heatmap' or its corresponding type declarations.
+app/page.tsx(6,30): error TS2307: Cannot find module '@/components/ContributorGraph' or its corresponding type declarations.
+app/page.tsx(7,27): error TS2307: Cannot find module '@/components/InsightsPanel' or its corresponding type declarations.
+app/page.tsx(8,22): error TS2307: Cannot find module '@/components/Controls' or its corresponding type declarations.
+app/page.tsx(9,70): error TS2307: Cannot find module '@/lib/types' or its corresponding type declarations.
+components/ContributorGraph.tsx(5,38): error TS2307: Cannot find module '@/lib/types' or its corresponding type declarations.
+components/Heatmap.tsx(4,37): error TS2307: Cannot find module '@/lib/types' or its corresponding type declarations.
+components/Heatmap.tsx(35,41): error TS7006: Parameter 'fc' implicitly has an 'any' type.
+components/InsightsPanel.tsx(3,27): error TS2307: Cannot find module '@/lib/types' or its corresponding type declarations.
+components/InsightsPanel.tsx(32,60): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/InsightsPanel.tsx(32,66): error TS7006: Parameter 'i' implicitly has an 'any' type.
+components/InsightsPanel.tsx(41,61): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/InsightsPanel.tsx(41,67): error TS7006: Parameter 'i' implicitly has an 'any' type.
+components/InsightsPanel.tsx(50,66): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/InsightsPanel.tsx(50,72): error TS7006: Parameter 'i' implicitly has an 'any' type.
+components/InsightsPanel.tsx(59,64): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/InsightsPanel.tsx(59,70): error TS7006: Parameter 'i' implicitly has an 'any' type.
+components/Timeline.tsx(4,28): error TS2307: Cannot find module '@/lib/types' or its corresponding type declarations.
+components/Timeline.tsx(64,104): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+components/Timeline.tsx(64,109): error TS7006: Parameter 'f' implicitly has an 'any' type.
+components/Timeline.tsx(65,102): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+components/Timeline.tsx(65,107): error TS7006: Parameter 'f' implicitly has an 'any' type.
+lib/hotspotAnalyzer.ts(20,36): error TS2802: Type 'MapIterator<[string, { changes: number; contributors: Set<string>; }]>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+lib/hotspotAnalyzer.ts(56,32): error TS2802: Type 'MapIterator<Set<string>>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+lib/hotspotAnalyzer.ts(67,40): error TS2322: Type 'unknown' is not assignable to type 'string'.
+lib/hotspotAnalyzer.ts(67,48): error TS2322: Type 'unknown' is not assignable to type 'string'.
