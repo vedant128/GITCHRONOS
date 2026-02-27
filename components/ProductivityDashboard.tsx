@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function ProductivityDashboard({ data }: Props) {
-    const { commitsPerDay, commitsPerHour, weekendActivityPercentage } = data;
+    const { commitsPerHour, weekendActivityPercentage } = data;
 
     return (
         <div className="w-full rounded-2xl bg-gray-900/40 backdrop-blur-md border border-gray-800 p-6 flex flex-col gap-6 h-full min-h-[300px]">

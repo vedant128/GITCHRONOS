@@ -53,8 +53,8 @@ export default function BusFactorBadge({ busFactorData }: Props) {
                             ))}
                         </Pie>
                         <RechartsTooltip
-                            // @ts-ignore
-                            formatter={(value: any) => {
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            formatter={(value: any, _name: any, _props: any) => {
                                 if (typeof value === 'number') return `${value.toFixed(1)}%`;
                                 return `${value || 0}%`;
                             }}

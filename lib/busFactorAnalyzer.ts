@@ -25,7 +25,7 @@ export function analyzeBusFactor(commits: CommitData[]): BusFactorResult {
     let totalFiles = 0;
     const authorDominatedFiles = new Map<string, number>();
 
-    fileOwnership.forEach((authorsMap, file) => {
+    Array.from(fileOwnership.values()).forEach((authorsMap) => {
         totalFiles++;
         let maxChanges = 0;
         let topAuthor = '';
@@ -46,14 +46,10 @@ export function analyzeBusFactor(commits: CommitData[]): BusFactorResult {
     });
 
     const ownershipData: { author: string; percentage: number; fileCount: number }[] = [];
-    let highRiskAuthors = 0;
 
     authorDominatedFiles.forEach((fileCount, author) => {
         const percentage = (fileCount / totalFiles) * 100;
         ownershipData.push({ author, percentage, fileCount });
-        if (percentage > 50) { // Owns > 50% of critical project files
-            highRiskAuthors++;
-        }
     });
 
     ownershipData.sort((a, b) => b.percentage - a.percentage);

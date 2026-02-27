@@ -1,4 +1,4 @@
-import { CommitData, Hotspot, HealthScoreResult, ContributorGraphData } from './types';
+import { Hotspot, HealthScoreResult, ContributorGraphData } from './types';
 
 export function calculateHealthScore(
     commitsCount: number,
@@ -31,7 +31,7 @@ export function calculateHealthScore(
     const hotspotPenalty = Math.min(35, hotspotDensity * 35); // Max 35 points penalty for extreme centralization
 
     // Final Calculation
-    let healthScore = Math.max(0, Math.round(100 - churnPenalty - overlapPenalty - hotspotPenalty));
+    const healthScore = Math.max(0, Math.round(100 - churnPenalty - overlapPenalty - hotspotPenalty));
 
     // Determine Grade
     let grade: 'A' | 'B' | 'C' | 'D' = 'D';
