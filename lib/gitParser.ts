@@ -1,89 +1,80 @@
-import simpleGit from 'simple-git';
 import { CommitData, FileChange } from './types';
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
+
+function parseGitHubUrl(url: string) {
+    const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) throw new Error('Only GitHub URLs are supported in Serverless context.');
+    let repo = match[2];
+    if (repo.endsWith('.git')) repo = repo.slice(0, -4);
+    return { owner: match[1], repo };
+}
 
 export async function cloneAndParseRepo(repoUrl: string, branch?: string): Promise<CommitData[]> {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gitchronos-'));
-    try {
-        const git = simpleGit();
-        if (branch) {
-            await git.clone(repoUrl, tempDir, ['--branch', branch, '--single-branch']);
-        } else {
-            await git.clone(repoUrl, tempDir);
-        }
-        return await parseLocalRepo(tempDir);
-    } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+    const { owner, repo } = parseGitHubUrl(repoUrl);
+
+    // Setup headers (use GITHUB_TOKEN if available)
+    const headers: Record<string, string> = {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'GitChronos-App'
+    };
+    if (process.env.GITHUB_TOKEN) {
+        headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
     }
-}
 
-export async function parseLocalRepo(dirPath: string): Promise<CommitData[]> {
-    const git = simpleGit(dirPath);
+    // Limit to 40 commits to stay within API limits and 60s execution time
+    let url = `https://api.github.com/repos/${owner}/${repo}/commits?per_page=40`;
+    if (branch) {
+        url += `&sha=${branch}`;
+    }
 
-    const rawLog = await git.raw([
-        'log',
-        '--first-parent',
-        '--numstat',
-        '--pretty=format:---COMMIT---%n%H%n%an%n%aI%n%B%n---ENDMESSAGE---'
-    ]);
+    const listRes = await fetch(url, { headers });
+    if (!listRes.ok) {
+        const errData = await listRes.text();
+        throw new Error(`Failed to fetch commits: ${listRes.status} ${errData}`);
+    }
 
-    return parseRawGitLog(rawLog);
-}
+    const listJson = await listRes.json();
+    if (!Array.isArray(listJson)) {
+        throw new Error(`GitHub API returned invalid data (expected array).`);
+    }
 
-function parseRawGitLog(raw: string): CommitData[] {
     const commits: CommitData[] = [];
-    const parts = raw.split('---COMMIT---\n').filter(Boolean);
 
-    for (const part of parts) {
-        const endMsgIndex = part.indexOf('---ENDMESSAGE---');
-        if (endMsgIndex === -1) continue;
+    // Fetch details for each commit concurrently with a small concurrency limit or sequentially
+    // Using sequential here since it's just 40 requests, which takes ~3-5 seconds and respects secondary rate limits
+    for (const item of listJson) {
+        const sha = item.sha;
+        const detailUrl = `https://api.github.com/repos/${owner}/${repo}/commits/${sha}`;
 
-        const headerAndMsg = part.substring(0, endMsgIndex).trim();
-        const statPart = part.substring(endMsgIndex + '---ENDMESSAGE---'.length).trim();
+        try {
+            const detailRes = await fetch(detailUrl, { headers });
+            if (!detailRes.ok) {
+                console.warn(`Failed to fetch details for commit ${sha}`);
+                continue;
+            }
+            const detailJson = await detailRes.json();
 
-        const lines = headerAndMsg.split('\n');
-        const hash = lines[0];
-        const author_name = lines[1];
-        const date = lines[2];
-        const message = lines.slice(3).join('\n');
-
-        const filesChanged: FileChange[] = [];
-        if (statPart) {
-            const statLines = statPart.split('\n');
-            for (const line of statLines) {
-                const match = line.split('\t');
-                if (match.length === 3) {
-                    const insStr = match[0].trim();
-                    const delStr = match[1].trim();
-                    const fileName = match[2].trim();
-
-                    const insertions = insStr === '-' ? 0 : parseInt(insStr, 10);
-                    const deletions = delStr === '-' ? 0 : parseInt(delStr, 10);
-
-                    if (!isNaN(insertions) && !isNaN(deletions)) {
-                        filesChanged.push({
-                            fileName,
-                            insertions,
-                            deletions,
-                            changes: insertions + deletions
-                        });
-                    }
+            const filesChanged: FileChange[] = [];
+            if (detailJson.files && Array.isArray(detailJson.files)) {
+                for (const f of detailJson.files) {
+                    filesChanged.push({
+                        fileName: f.filename,
+                        insertions: f.additions || 0,
+                        deletions: f.deletions || 0,
+                        changes: f.changes || 0
+                    });
                 }
             }
-        }
 
-        // Sort commits descending in the array based on date (they come this way usually from git log but let's just keep them ordered)
-        // Actually git log outputs newest first. We might want oldest first for playback?
-        // We can reverse it in the frontend or here. Let's keep raw format for now.
-        commits.push({
-            hash,
-            author_name,
-            date,
-            message,
-            filesChanged
-        });
+            commits.push({
+                hash: sha,
+                author_name: item.commit.author.name,
+                date: item.commit.author.date,
+                message: item.commit.message,
+                filesChanged
+            });
+        } catch (err) {
+            console.error(`Error processing commit ${sha}:`, err);
+        }
     }
 
     return commits;
